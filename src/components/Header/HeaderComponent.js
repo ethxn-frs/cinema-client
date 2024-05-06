@@ -76,6 +76,7 @@ function HeaderComponent() {
                         <NavDropdown title="Plus" id="basic-nav-dropdown">
                             <NavDropdown.Item onClick={() => handleOpenModal(true)}>Créditer son compte</NavDropdown.Item>
                             <NavDropdown.Item onClick={() => handleOpenModal(false)}>Retirer du solde</NavDropdown.Item>
+                            <NavDropdown.Item href="/transactions">Mes séances</NavDropdown.Item>
                             <NavDropdown.Divider />
                             <NavDropdown.Item href="#contact">Contact</NavDropdown.Item>
                         </NavDropdown>

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Modal, Button } from 'react-bootstrap';
+import { Modal, Button, Table, Pagination, Form } from 'react-bootstrap';
 import { useUser } from '../../Contexts/UserContext';
 
 function TicketsListComponent() {
@@ -7,9 +7,14 @@ function TicketsListComponent() {
     const [isLoading, setLoading] = useState(true);
     const [showModal, setShowModal] = useState(false);
     const [ticketType, setTicketType] = useState('NORMAL');
+    const [filterType, setFilterType] = useState('');
+    const [filterUsed, setFilterUsed] = useState('');
+    const [currentPage, setCurrentPage] = useState(1);
+    const [totalPages, setTotalPages] = useState(1);
     const { fetchUserData } = useUser();
+    const ticketsPerPage = 10; // Number of tickets per page
 
-    const fetchTickets = async () => {
+    const fetchTickets = async (page = 1) => {
         const userId = localStorage.getItem('userId');
         const token = localStorage.getItem('token');
         if (!token) {
@@ -17,7 +22,14 @@ function TicketsListComponent() {
             return;
         }
         try {
-            const response = await fetch(`http://localhost:3000/tickets?userId=${userId}`, {
+            setLoading(true);
+            const url = new URL('http://localhost:3000/tickets');
+            url.searchParams.append('userId', userId);
+            url.searchParams.append('page', page);
+            url.searchParams.append('limit', ticketsPerPage);
+            if (filterType) url.searchParams.append('ticketType', filterType);
+            if (filterUsed) url.searchParams.append('used', filterUsed);
+            const response = await fetch(url, {
                 headers: {
                     Authorization: `Bearer ${token}`
                 }
@@ -27,6 +39,8 @@ function TicketsListComponent() {
             }
             const data = await response.json();
             setTickets(data.tickets);
+            setTotalPages(Math.ceil(data.totalCount / ticketsPerPage));
+            setCurrentPage(page);
         } catch (error) {
             console.error('Error:', error);
         } finally {
@@ -36,7 +50,7 @@ function TicketsListComponent() {
 
     useEffect(() => {
         fetchTickets();
-    }, []);
+    }, [filterType, filterUsed]);
 
     const buyTicket = async (type) => {
         const userId = localStorage.getItem('userId');
@@ -64,7 +78,7 @@ function TicketsListComponent() {
                     const errorData = await response.json();
                     errorMessage = errorData.error || errorMessage;
                 } else {
-                    errorMessage = await response.text(); // Sinon, lisez simplement le texte de la réponse
+                    errorMessage = await response.text();
                 }
 
                 throw new Error(errorMessage);
@@ -73,18 +87,17 @@ function TicketsListComponent() {
             const newTicket = await response.json();
             setTickets(currentTickets => [...currentTickets, newTicket]);
             alert('Ticket purchased successfully!');
-            await fetchTickets();
+            await fetchTickets(currentPage);
             await fetchUserData();
         } catch (error) {
             console.error('Error:', error);
-            alert(error.message); // Afficher le message d'erreur extrait ou généré
+            alert(error.message);
         }
     };
 
-
-
-    if (isLoading) return <div>Loading...</div>;
-    if (!tickets.length) return <div>No tickets found.</div>;
+    const handlePageChange = (page) => {
+        fetchTickets(page);
+    };
 
     const handleBuyClick = () => {
         setShowModal(true);
@@ -99,28 +112,78 @@ function TicketsListComponent() {
         setShowModal(false);
     };
 
+    const extractMovieName = (shows) => {
+        return shows.length > 0 && shows[0] ?  formatDate(shows[0].startAt) +" - " +  shows[0].movie.name  : ' - ';
+    }
+
     return (
         <div className="container mt-5 text-center">
-            <h2>Liste des Tickets</h2>
-            <Button className='mt-5' variant="primary" onClick={handleBuyClick}>Acheter</Button>
-            <table className="table mt-5">
+            <h2 className="text-center">Liste des Tickets</h2>
+
+            <div className="d-flex justify-content-center">
+                <Form.Group controlId="filterType" className="mx-2">
+                    <Form.Label>Type de Ticket</Form.Label>
+                    <Form.Select value={filterType} onChange={(e) => setFilterType(e.target.value)}>
+                        <option value="">Tous</option>
+                        <option value="NORMAL">Normal</option>
+                        <option value="SUPER">SuperTicket</option>
+                    </Form.Select>
+                </Form.Group>
+
+                <Form.Group controlId="filterUsed" className="mx-2">
+                    <Form.Label>Utilisé</Form.Label>
+                    <Form.Select value={filterUsed} onChange={(e) => setFilterUsed(e.target.value)}>
+                        <option value="">Tous</option>
+                        <option value="true">Oui</option>
+                        <option value="false">Non</option>
+                    </Form.Select>
+                </Form.Group>
+
+                <Button className="align-self-end" variant="primary" onClick={() => fetchTickets()}>
+                    Filtrer
+                </Button>
+            </div>
+
+            <Button className='mt-3 mb-3' variant="primary" onClick={handleBuyClick}>Acheter</Button>
+
+            <Table striped bordered hover responsive className="mt-3">
                 <thead className="thead-dark">
                     <tr>
-                        <th scope="col">#</th>
-                        <th scope="col">Type</th>
-                        <th scope="col">Used</th>
+                        <th>#</th>
+                        <th>Type</th>
+                        <th>Used</th>
+                        <th>Film</th>
                     </tr>
                 </thead>
                 <tbody>
-                    {tickets.map((ticket, index) => (
-                        <tr key={ticket.id}>
-                            <th scope="row">{index + 1}</th>
-                            <td>{ticket.type}</td>
-                            <td>{ticket.used ? 'Yes' : 'No'}</td>
+                    {tickets.length > 0 ? (
+                        tickets.map((ticket, index) => (
+                            <tr key={ticket.id}>
+                                <td>{(currentPage - 1) * ticketsPerPage + index + 1}</td>
+                                <td>{ticket.type}</td>
+                                <td>{ticket.used ? 'Yes' : 'No'}</td>
+                                <td>  {extractMovieName(ticket.shows)}</td>
+                            </tr>
+                        ))
+                    ) : (
+                        <tr>
+                            <td colSpan="4" className="text-center">No tickets found.</td>
                         </tr>
-                    ))}
+                    )}
                 </tbody>
-            </table>
+            </Table>
+
+            <Pagination className="justify-content-center">
+                {[...Array(totalPages).keys()].map(pageNumber => (
+                    <Pagination.Item
+                        key={pageNumber + 1}
+                        active={pageNumber + 1 === currentPage}
+                        onClick={() => handlePageChange(pageNumber + 1)}
+                    >
+                        {pageNumber + 1}
+                    </Pagination.Item>
+                ))}
+            </Pagination>
 
             <Modal className='modal' show={showModal} onHide={handleModalClose}>
                 <Modal.Header closeButton>
@@ -128,14 +191,13 @@ function TicketsListComponent() {
                 </Modal.Header>
                 <Modal.Body>
                     <p>Veuillez choisir le type de ticket :</p>
-                    <select
-                        className="form-select"
+                    <Form.Select
                         value={ticketType}
                         onChange={(e) => setTicketType(e.target.value)}
                     >
                         <option value="NORMAL">Normal ( 10€ | 1 séance)</option>
                         <option value="SUPER">SuperTicket ( 90€ | 10 séances)</option>
-                    </select>
+                    </Form.Select>
                 </Modal.Body>
                 <Modal.Footer>
                     <Button variant="secondary" onClick={handleModalClose}>
@@ -146,8 +208,20 @@ function TicketsListComponent() {
                     </Button>
                 </Modal.Footer>
             </Modal>
+
+            {!tickets.length && <div className="text-center mt-3">No tickets found.</div>}
         </div>
     );
 }
 
 export default TicketsListComponent;
+
+
+function formatDate(dateString) {
+    const date = new Date(dateString);
+    const options = { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', hour12: false };
+    let formattedDate = date.toLocaleDateString('fr-FR', options).replace(/\/(\d{4})$/, ' $1');
+    formattedDate = formattedDate.replace(/,/, '');
+    formattedDate = formattedDate.replace(/:(\d{2})/, 'h$1');
+    return formattedDate;
+}

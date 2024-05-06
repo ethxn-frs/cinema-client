@@ -1,6 +1,23 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 
-function ShowCardComponent({ show }) {
+function ShowCardComponent({ show, onReserve, updateRemainingPlaces }) {
+    const [remainingPlaces, setRemainingPlaces] = useState(null);
+
+    useEffect(() => {
+        const fetchRemainingPlaces = async () => {
+            try {
+                const response = await fetch(`http://localhost:3000/shows/${show.id}/remaining-places`);
+                const data = await response.json();
+                setRemainingPlaces(data.remainingPlaces);
+                updateRemainingPlaces(show.id, data.remainingPlaces);
+            } catch (error) {
+                console.error("Failed to fetch remaining places:", error);
+            }
+        };
+
+        fetchRemainingPlaces();
+    }, [show.id, updateRemainingPlaces]);
+
     return (
         <div className="card m-2" style={{ width: '18rem' }}>
             <img src={show.movie.image ? show.movie.image.path : 'https://example.com/images/default-movie.jpg'}
@@ -15,7 +32,12 @@ function ShowCardComponent({ show }) {
                     <strong>Début:</strong> {formatDate(show.startAt)}
                     <br />
                     <strong>Fin:</strong> {formatDate(show.endAt)}
+                    <br />
+                    <strong>Remaining Places:</strong> {remainingPlaces !== null ? remainingPlaces : "Loading..."}
                 </div>
+                <button className="btn btn-primary mt-2" onClick={() => onReserve(show)} disabled={remainingPlaces !== null && remainingPlaces <= 0}>
+                    Réserver
+                </button>
             </div>
         </div>
     );
