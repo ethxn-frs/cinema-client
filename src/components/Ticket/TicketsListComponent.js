@@ -113,7 +113,7 @@ function TicketsListComponent() {
     };
 
     const extractMovieName = (shows) => {
-        return shows.length > 0 && shows[0] ?  formatDate(shows[0].startAt) +" - " +  shows[0].movie.name  : ' - ';
+        return shows.length > 0 && shows[0] ? formatDate(shows[0].startAt) + " - " + shows[0].movie.name : ' - ';
     }
 
     return (

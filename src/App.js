@@ -1,6 +1,5 @@
 import React from 'react';
-import { BrowserRouter as Router, Route, Routes, useLocation } from 'react-router-dom';
-import HeaderComponent from './components/Header/HeaderComponent';
+import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import HomePage from './components/HomePage/HomePage';
 import FooterComponent from './components/Footer/FooterComponent';
 import 'bootstrap/dist/css/bootstrap.min.css';
@@ -16,13 +15,23 @@ import PrivateRoute from './components/PrivateRoute/PrivateRoute';
 import TicketsListComponent from './components/Ticket/TicketsListComponent';
 import { UserProvider } from './Contexts/UserContext';
 import HeaderWrapper from './Contexts/HeaderWrapper';
+import AdminRoomCreateComponent from './components/Admin/AdminRoomCreate/AdminRoomCreateComponent';
+import { ProtectedRoute } from './components/ProtectedRoute/ProtectedRoute';
+import AdminRoomListComponent from './components/Admin/AdminRoomList/AdminRoomListComponent';
+import AdminShowListComponent from './components/Admin/AdminShowList/AdminShowListComponent';
+import AdminShowCreateComponent from './components/Admin/AdminShowCreate/AdminShowCreateComponent';
+import AdminMovieListComponent from './components/Admin/AdminMovieList/AdminMovieList';
+import AdminMovieCreateComponent from './components/Admin/AdminMovieCreate/AdminMovieCreateComponent';
+import AdminUserListComponent from './components/Admin/AdminUserList/AdminUserListComponent';
+import AdminUserCreateComponent from './components/Admin/AdminUserCreate/AdminUserCreateComponent';
+import AdminHomePageComponent from './components/Admin/AdminHomePage/AdminHomePageComponent';
 
 function App() {
   return (
     <Router>
       <UserProvider>
         <div className="App">
-          <HeaderWrapper/>
+          <HeaderWrapper />
           <Routes>
             <Route path="/" element={<PrivateRoute element={HomePage} />} />
             <Route path="/signup" element={<SignupComponent />} />
@@ -33,6 +42,22 @@ function App() {
             <Route path="/rooms" element={<PrivateRoute element={RoomsListComponent} />} />
             <Route path="/transactions" element={<PrivateRoute element={TransactionsListComponent} />} />
             <Route path="/tickets" element={<PrivateRoute element={TicketsListComponent} />} />
+
+            {/* route pour l'admin */}
+            <Route path="/admin" element={<ProtectedRoute> <AdminHomePageComponent /> </ProtectedRoute>} />
+
+            <Route path="/admin/rooms" element={<ProtectedRoute> <AdminRoomListComponent /> </ProtectedRoute>} />
+            <Route path="/admin/rooms/create" element={<ProtectedRoute> <AdminRoomCreateComponent /> </ProtectedRoute>} />
+
+            <Route path="/admin/shows" element={<ProtectedRoute> <AdminShowListComponent /> </ProtectedRoute>} />
+            <Route path="/admin/shows/create" element={<ProtectedRoute> <AdminShowCreateComponent /> </ProtectedRoute>} />
+
+            <Route path="/admin/movies" element={<ProtectedRoute> <AdminMovieListComponent /> </ProtectedRoute>} />
+            <Route path="/admin/movies/create" element={<ProtectedRoute> <AdminMovieCreateComponent /> </ProtectedRoute>} />
+
+            <Route path="/admin/users" element={<ProtectedRoute> <AdminUserListComponent /> </ProtectedRoute>} />
+            <Route path="/admin/users/create" element={<ProtectedRoute> <AdminUserCreateComponent /> </ProtectedRoute>} />
+
           </Routes>
           <FooterComponent />
         </div>

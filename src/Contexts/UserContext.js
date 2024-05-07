@@ -1,4 +1,3 @@
-// UserContext.js
 import React, { createContext, useContext, useState, useEffect } from 'react';
 
 const UserContext = createContext();
@@ -6,7 +5,8 @@ const UserContext = createContext();
 export const useUser = () => useContext(UserContext);
 
 export const UserProvider = ({ children }) => {
-    const [userDetails, setUserDetails] = useState({ sold: 0, token: null });
+    const [userDetails, setUserDetails] = useState({ sold: 0, token: null, roles: [] });
+    const [isLoaded, setIsLoaded] = useState(false);
 
     const fetchUserData = async () => {
         const userId = localStorage.getItem('userId');
@@ -18,10 +18,14 @@ export const UserProvider = ({ children }) => {
                 });
                 if (!response.ok) throw new Error('Failed to fetch user details');
                 const userData = await response.json();
-                setUserDetails({ ...userData, token });
+                setUserDetails({ ...userData, token, roles: userData.roles.split(';').map(role => role.trim()) });
             } catch (error) {
                 console.error('Error:', error);
+            } finally {
+                setIsLoaded(true);
             }
+        } else {
+            setIsLoaded(true);
         }
     };
 
@@ -29,8 +33,10 @@ export const UserProvider = ({ children }) => {
         fetchUserData();
     }, []);
 
+    const isAdmin = () => userDetails.roles.includes('admin');
+
     return (
-        <UserContext.Provider value={{ userDetails, fetchUserData }}>
+        <UserContext.Provider value={{ userDetails, fetchUserData, isAdmin, isLoaded }}>
             {children}
         </UserContext.Provider>
     );

@@ -7,7 +7,7 @@ function HeaderComponent() {
     const { userDetails, fetchUserData } = useUser();
     const [showModal, setShowModal] = useState(false);
     const [amount, setAmount] = useState('');
-    const [isCredit, setIsCredit] = useState(true);  // True pour créditer, false pour retirer
+    const [isCredit, setIsCredit] = useState(true); // True pour créditer, false pour retirer
 
     const handleOpenModal = (credit) => {
         setIsCredit(credit);
@@ -21,7 +21,7 @@ function HeaderComponent() {
 
     const handleConfirm = async () => {
         if (!amount) {
-            alert('Please enter a valid amount');
+            alert('Veuillez entrer un montant valide');
             return;
         }
         const updateAmount = isCredit ? Math.abs(amount) : -Math.abs(amount);
@@ -38,7 +38,7 @@ function HeaderComponent() {
 
             if (!response.ok) {
                 const contentType = response.headers.get('Content-Type');
-                let errorMessage = 'Failed to update balance';
+                let errorMessage = 'Échec de la mise à jour du solde';
 
                 if (contentType && contentType.includes('application/json')) {
                     const errorData = await response.json();
@@ -50,16 +50,17 @@ function HeaderComponent() {
                 throw new Error(errorMessage);
             }
 
-            const userUpdated = await response.json();
-            alert(isCredit ? 'Account credited successfully!' : 'Amount withdrawn successfully!');
+            alert(isCredit ? 'Compte crédité avec succès!' : 'Montant retiré avec succès!');
             fetchUserData();
             handleModalClose();
         } catch (error) {
-            console.error('Error:', error);
+            console.error('Erreur:', error);
             alert(error.message);
         }
     };
 
+    // Vérifie si l'utilisateur est un administrateur (utilise une liste de rôles ou une simple chaîne)
+    const isAdmin = userDetails.roles && userDetails.roles.includes('admin');
 
     return (
         <Navbar bg="dark" variant="dark" expand="lg">
@@ -77,6 +78,12 @@ function HeaderComponent() {
                             <NavDropdown.Item onClick={() => handleOpenModal(true)}>Créditer son compte</NavDropdown.Item>
                             <NavDropdown.Item onClick={() => handleOpenModal(false)}>Retirer du solde</NavDropdown.Item>
                             <NavDropdown.Item href="/transactions">Mes séances</NavDropdown.Item>
+                            {isAdmin && (
+                                <>
+                                    <NavDropdown.Divider />
+                                    <NavDropdown.Item href="/admin">Admin</NavDropdown.Item>
+                                </>
+                            )}
                             <NavDropdown.Divider />
                             <NavDropdown.Item href="#contact">Contact</NavDropdown.Item>
                         </NavDropdown>
