@@ -1,5 +1,5 @@
 import React from 'react';
-import MovieCardComponent from '../MovieCard/MovieCardComponent';
+import MovieCardComponent from './MovieCardComponent';
 
 function UpcomingMoviesComponent({ movies }) {
     return (

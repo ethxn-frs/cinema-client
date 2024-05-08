@@ -15,16 +15,18 @@ import PrivateRoute from './components/PrivateRoute/PrivateRoute';
 import TicketsListComponent from './components/Ticket/TicketsListComponent';
 import { UserProvider } from './Contexts/UserContext';
 import HeaderWrapper from './Contexts/HeaderWrapper';
-import AdminRoomCreateComponent from './components/Admin/AdminRoomCreate/AdminRoomCreateComponent';
+import AdminRoomCreateComponent from './components/Admin/AdminRoom/AdminRoomCreateComponent';
 import { ProtectedRoute } from './components/ProtectedRoute/ProtectedRoute';
-import AdminRoomListComponent from './components/Admin/AdminRoomList/AdminRoomListComponent';
-import AdminShowListComponent from './components/Admin/AdminShowList/AdminShowListComponent';
-import AdminShowCreateComponent from './components/Admin/AdminShowCreate/AdminShowCreateComponent';
-import AdminMovieListComponent from './components/Admin/AdminMovieList/AdminMovieList';
-import AdminMovieCreateComponent from './components/Admin/AdminMovieCreate/AdminMovieCreateComponent';
-import AdminUserListComponent from './components/Admin/AdminUserList/AdminUserListComponent';
-import AdminUserCreateComponent from './components/Admin/AdminUserCreate/AdminUserCreateComponent';
+import AdminRoomListComponent from './components/Admin/AdminRoom/AdminRoomListComponent';
+import AdminShowListComponent from './components/Admin/AdminShow/AdminShowListComponent';
+import AdminShowCreateComponent from './components/Admin/AdminShow/AdminShowCreateComponent';
+import AdminMovieListComponent from './components/Admin/AdminMovie/AdminMovieList';
+import AdminMovieCreateComponent from './components/Admin/AdminMovie/AdminMovieCreateComponent';
+import AdminUserListComponent from './components/Admin/AdminUser/AdminUserListComponent';
+import AdminUserCreateComponent from './components/Admin/AdminUser/AdminUserCreateComponent';
 import AdminHomePageComponent from './components/Admin/AdminHomePage/AdminHomePageComponent';
+import AdminUpdateMovieComponent from './components/Admin/AdminMovie/AdminMovieUpdateComponent';
+import AdminShowUpdateComponent from './components/Admin/AdminShow/AdminShowUpdateComponent';
 
 function App() {
   return (
@@ -51,9 +53,12 @@ function App() {
 
             <Route path="/admin/shows" element={<ProtectedRoute> <AdminShowListComponent /> </ProtectedRoute>} />
             <Route path="/admin/shows/create" element={<ProtectedRoute> <AdminShowCreateComponent /> </ProtectedRoute>} />
+            <Route path="/admin/shows/edit/:id" element={<AdminShowUpdateComponent />} />
 
             <Route path="/admin/movies" element={<ProtectedRoute> <AdminMovieListComponent /> </ProtectedRoute>} />
             <Route path="/admin/movies/create" element={<ProtectedRoute> <AdminMovieCreateComponent /> </ProtectedRoute>} />
+            <Route path="/admin/movies/edit/:id" element={<AdminUpdateMovieComponent />} />
+
 
             <Route path="/admin/users" element={<ProtectedRoute> <AdminUserListComponent /> </ProtectedRoute>} />
             <Route path="/admin/users/create" element={<ProtectedRoute> <AdminUserCreateComponent /> </ProtectedRoute>} />

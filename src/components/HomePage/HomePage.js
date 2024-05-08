@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import UpcomingMoviesComponent from '../Movie/UpcomingMovies/UpcomingMoviesComponent';
+import UpcomingMoviesComponent from '../Movie/UpcomingMoviesComponent';
 import UpcomingShowsComponent from '../Show/UpcomingShowsComponent';
 import RoomsListComponent from '../Room/RoomsListComponent';
 

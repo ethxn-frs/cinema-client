@@ -1,26 +1,26 @@
-// src/Components/AdminMovieListComponent.js
+// src/Components/AdminShowListComponent.js
 
 import React, { useState, useEffect } from 'react';
 import { Table, Button, Modal, Alert } from 'react-bootstrap';
 import { useNavigate } from 'react-router-dom';
 
-export default function AdminMovieListComponent() {
-    const [movies, setMovies] = useState([]);
+export default function AdminShowListComponent() {
+    const [shows, setShows] = useState([]);
     const [error, setError] = useState('');
     const [success, setSuccess] = useState('');
     const [showDeleteModal, setShowDeleteModal] = useState(false);
-    const [movieToDelete, setMovieToDelete] = useState(null);
+    const [showToDelete, setShowToDelete] = useState(null);
     const navigate = useNavigate();
 
     useEffect(() => {
-        fetchMovies();
+        fetchShows();
     }, []);
 
-    const fetchMovies = async () => {
+    const fetchShows = async () => {
         setError('');
         setSuccess('');
         try {
-            const response = await fetch('http://localhost:3000/movies', {
+            const response = await fetch('http://localhost:3000/shows', {
                 headers: {
                     Authorization: `Bearer ${localStorage.getItem('token')}`
                 }
@@ -28,27 +28,28 @@ export default function AdminMovieListComponent() {
 
             if (response.ok) {
                 const data = await response.json();
-                setMovies(Array.isArray(data.movies) ? data.movies : []);
+                // Assume the API returns an array directly
+                setShows(Array.isArray(data.shows) ? data.shows : []);
             } else {
-                setError('Erreur lors du chargement des films.');
+                setError('Erreur lors du chargement des shows.');
             }
         } catch (err) {
             setError('Une erreur est survenue : ' + err.message);
         }
     };
 
-    const handleDeleteClick = (movie) => {
-        setMovieToDelete(movie);
+    const handleDeleteClick = (show) => {
+        setShowToDelete(show);
         setShowDeleteModal(true);
     };
 
     const handleConfirmDelete = async () => {
-        if (!movieToDelete) return;
+        if (!showToDelete) return;
 
         setError('');
         setSuccess('');
         try {
-            const response = await fetch(`http://localhost:3000/movies/${movieToDelete.id}`, {
+            const response = await fetch(`http://localhost:3000/shows/${showToDelete.id}`, {
                 method: 'DELETE',
                 headers: {
                     Authorization: `Bearer ${localStorage.getItem('token')}`
@@ -56,32 +57,37 @@ export default function AdminMovieListComponent() {
             });
 
             if (response.ok) {
-                setSuccess(`Film supprimé avec succès : ${movieToDelete.name}`);
-                setMovies(movies.filter(movie => movie.id !== movieToDelete.id));
+                setSuccess(`Séance supprimée avec succès : ${showToDelete.id}`);
+                setShows(shows.filter(show => show.id !== showToDelete.id));
             } else {
-                const result = await response.json();
-                setError(result.error || 'Erreur lors de la suppression du film.');
+                try {
+                    const result = await response.json();
+                    setError(result.error || 'Erreur lors de la suppression de la séance.');
+                } catch {
+                    const result = await response.text();
+                    setError(result || 'Erreur lors de la suppression de la séance.');
+                }
             }
         } catch (err) {
             setError('Une erreur est survenue : ' + err.message);
         }
 
         setShowDeleteModal(false);
-        setMovieToDelete(null);
+        setShowToDelete(null);
     };
 
     const handleCancelDelete = () => {
         setShowDeleteModal(false);
-        setMovieToDelete(null);
+        setShowToDelete(null);
     };
 
     return (
         <div className="container mt-5">
-            <h2>Liste des Films</h2>
+            <h2>Liste des Séances</h2>
             {error && <Alert variant="danger">{error}</Alert>}
             {success && <Alert variant="success">{success}</Alert>}
-            <Button variant="primary" className="mb-3" onClick={() => navigate('/admin/movies/create')}>
-                Créer un Film
+            <Button variant="primary" className="mb-3" onClick={() => navigate('/admin/shows/create')}>
+                Créer une Séance
             </Button>
             <Button className="mb-3 ms-2 ligth" onClick={() => navigate('/admin')}>
                 Retour
@@ -90,23 +96,29 @@ export default function AdminMovieListComponent() {
                 <thead>
                     <tr>
                         <th>ID</th>
-                        <th>Nom</th>
-                        <th>Description</th>
-                        <th>Durée (minutes)</th>
+                        <th>Début</th>
+                        <th>Fin</th>
+                        <th>État</th>
+                        <th>Salle</th>
+                        <th>Film</th>
                         <th>Actions</th>
                     </tr>
                 </thead>
                 <tbody>
-                    {movies.length > 0 ? (
-                        movies.map((movie) => (
-                            <tr key={movie.id}>
-                                <td>{movie.id}</td>
-                                <td>{movie.name}</td>
-                                <td>{movie.description}</td>
-                                <td>{movie.duration}</td>
+                    {shows.length > 0 ? (
+                        shows.map((show) => (
+                            <tr key={show.id}>
+                                <td>{show.id}</td>
+                                <td>{new Date(show.startAt).toLocaleString()}</td>
+                                <td>{new Date(show.endAt).toLocaleString()}</td>
+                                <td>{show.state ? 'Actif' : 'Annulé'}</td>
+                                <td>{show.room.id}</td>
+                                <td>{show.movie ? show.movie.name : 'Inconnu'}</td>
                                 <td>
-                                    <Button variant="warning" className="me-2">Modifier</Button>
-                                    <Button variant="danger" onClick={() => handleDeleteClick(movie)}>
+                                    <Button variant="warning" className="me-2" onClick={() => navigate(`/admin/shows/edit/${show.id}`)}>
+                                        Modifier
+                                    </Button>
+                                    <Button variant="danger" onClick={() => handleDeleteClick(show)}>
                                         Supprimer
                                     </Button>
                                 </td>
@@ -114,7 +126,7 @@ export default function AdminMovieListComponent() {
                         ))
                     ) : (
                         <tr>
-                            <td colSpan="5" className="text-center">Aucun film trouvé.</td>
+                            <td colSpan="7" className="text-center">Aucune séance trouvée.</td>
                         </tr>
                     )}
                 </tbody>
@@ -126,7 +138,7 @@ export default function AdminMovieListComponent() {
                     <Modal.Title>Confirmation de suppression</Modal.Title>
                 </Modal.Header>
                 <Modal.Body>
-                    Voulez-vous vraiment supprimer le film : {movieToDelete && `${movieToDelete.id} - ${movieToDelete.name}`} ?
+                    Voulez-vous vraiment supprimer la séance : {showToDelete && `${showToDelete.id}`} ?
                 </Modal.Body>
                 <Modal.Footer>
                     <Button variant="secondary" onClick={handleCancelDelete}>Annuler</Button>
